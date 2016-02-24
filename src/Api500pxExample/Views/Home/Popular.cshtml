@@ -1,0 +1,13 @@
+﻿@model List<Api500pxExample.Api.Models.Photo>
+<h3>@ViewData["Message"]</h3>
+
+<table>
+    @foreach (var photo in Model)
+    {
+        <tr>
+            <td>
+                @photo.Name
+            </td>
+        </tr>
+    }
+</table>
