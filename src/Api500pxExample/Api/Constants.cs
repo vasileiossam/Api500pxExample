@@ -7,8 +7,8 @@ namespace Api500pxExample.Api
 {
     public class Constants
     {
-        public const string ConsumerKey = " 63x9cuRYAJyxE5prc0VbFjjbse51EsyJizgixal0";
-        public const string ConsumerSecret = " iF7uMD1mu8DINttVybyRPuzgpc8GzUtGbsp0lLPD";
+        public const string ConsumerKey = "<ENTER YOUR CONSUMER KEY HERE>";
+        public const string ConsumerSecret = "<ENTER YOUR CONSUMER SECRET HERE>";
         
         private const string AccessUrl = "https://api.500px.com/v1/oauth/access_token";
         private const string AuthorizeUrl = "https://api.500px.com/v1/oauth/authorize";
@@ -17,3 +17,4 @@ namespace Api500pxExample.Api
         private const string OAuthVersion = "1.0";
     }
 }
+ 
