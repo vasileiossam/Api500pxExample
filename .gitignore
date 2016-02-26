@@ -211,9 +211,4 @@ GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
 
-[alias]
-track = update-index --no-assume-unchanged
-untrack = update-index --assume-unchanged
-ls-untrack = ls-files -v | grep "^[[:lower:]]"
-
 Constants.cs
