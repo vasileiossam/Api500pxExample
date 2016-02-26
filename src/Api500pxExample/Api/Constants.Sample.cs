@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace Api500pxExample.Api
+﻿namespace Api500pxExample.Api
 {
     public class ConstantsSample
     {
