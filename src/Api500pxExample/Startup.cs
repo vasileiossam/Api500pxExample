@@ -28,11 +28,18 @@ namespace Api500pxExample
         {
             // Add framework services.
             services.AddMvc();
+            
+            // http://www.hossambarakat.net/2016/02/03/configuring-redis-as-asp-net-core-1-0-session-store/
+            services.AddSession();
+
+            services.AddCaching();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            app.UseSession();
+
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
 
@@ -56,6 +63,9 @@ namespace Api500pxExample
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            
+
         }
 
         // Entry point for the application.
