@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Api500pxExample.Api.Models;
 using Newtonsoft.Json;
+using Api500pxExample.Api.Contracts;
 
 // ReSharper disable InconsistentNaming
 
@@ -21,7 +22,7 @@ namespace Api500pxExample.Api
     /// Good ideas here: http://www.rahulpnath.com/blog/exploring-oauth-c-and-500px/
     /// To check the signature: http://oauth.googlecode.com/svn/code/javascript/example/signature.html
     /// </summary>
-    public class Api500px //: IApi500px
+    public class Api500px 
     {
         #region Private Constants
         private const string AccessUrl = "https://api.500px.com/v1/oauth/access_token";
@@ -31,75 +32,11 @@ namespace Api500pxExample.Api
         private const string OAuthVersion = "1.0";
         #endregion
 
+        #region Private Fields
         private Dictionary<string, string> AuthorizationParameters;
+        #endregion
 
-        /// <summary>
-        /// All subsequent request to any protected resource needs the AccessToken and should be 
-        /// signed using ConsumerKey and the access token's secret code.
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public async Task<List<Photo>> Popular(OauthToken token)
-        {
-            AuthorizationParameters = new Dictionary<string, string>()
-            {
-                {OauthParameter.OauthConsumerKey, Constants.ConsumerKey},
-                {OauthParameter.OauthNonce, GetNonce()},
-                {OauthParameter.OauthSignatureMethod, OAuthSignatureMethod},
-                {OauthParameter.OauthTimestamp, GetTimeStamp()},
-                {OauthParameter.OauthToken, token.Token},
-                {OauthParameter.OauthVersion, OAuthVersion}
-            };
-
-            var url2 = "https://api.500px.com/v1/photos?feature=popular";
-            var url = "https://api.500px.com/v1/photos";
-            var response = await Sign(url, Constants.ConsumerSecret, token.Secret, "GET", "feature=popular").GetRequest(url2);
-            return null;
-        }
-
-        public async Task<OauthToken> GetRequestToken()
-        {
-            AuthorizationParameters = new Dictionary<string, string>()
-            {
-                {OauthParameter.OauthCallback, Constants.CallbackUrl},
-                {OauthParameter.OauthConsumerKey, Constants.ConsumerKey},
-                {OauthParameter.OauthNonce, GetNonce()},
-                {OauthParameter.OauthSignatureMethod, OAuthSignatureMethod},
-                {OauthParameter.OauthTimestamp, GetTimeStamp()},
-                {OauthParameter.OauthVersion, OAuthVersion}
-            };
-
-            var response = await Sign(RequestTokenUrl, Constants.ConsumerSecret, string.Empty, "POST", "").PostRequest(RequestTokenUrl);
-            return ParseReponse(response);
-        }
-
-        /// <summary>
-        /// A callback is needed to get back oauth_token and oauth_verifier
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public string GetAuthorizationUrl(OauthToken token)
-        {
-            return AuthorizeUrl + "?oauth_token=" + token.Token;
-        }
-
-        public async Task<OauthToken> GetAccessToken(OauthToken token)
-        {
-            AuthorizationParameters = new Dictionary<string, string>()
-            {
-                {OauthParameter.OauthConsumerKey, Constants.ConsumerKey},
-                {OauthParameter.OauthNonce, GetNonce()},
-                {OauthParameter.OauthSignatureMethod, OAuthSignatureMethod},
-                {OauthParameter.OauthTimestamp, GetTimeStamp()},
-                {OauthParameter.OauthToken, token.Token},
-                {OauthParameter.OauthVerifier, token.Verifier},
-                {OauthParameter.OauthVersion, OAuthVersion}
-             };
-
-            var response = await Sign(AccessUrl, Constants.ConsumerSecret, token.Secret, "POST", "").PostRequest(AccessUrl);
-            return ParseReponse(response);
-        }
-
+        #region Private Methods        
         private static string GetNonce()
         {
             var rand = new Random();
@@ -178,7 +115,7 @@ namespace Api500pxExample.Api
             return string.Empty;
         }
 
-        private async Task<string> GetRequest(string url)
+        private async Task<HttpResponseMessage> GetRequest(string url)
         {
             var oauthString = string.Empty;
             if (AuthorizationParameters != null)
@@ -193,19 +130,11 @@ namespace Api500pxExample.Api
                 AuthorizationParameters.Clear();
             }
 
-
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", oauthString);
-                var response = await client.GetAsync(new Uri(url, UriKind.Absolute));
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return await response.Content.ReadAsStringAsync();
-                }
+                return await client.GetAsync(new Uri(url, UriKind.Absolute));
             }
-
-            return string.Empty;
         }
 
         private OauthToken ParseReponse(string response)
@@ -247,5 +176,75 @@ namespace Api500pxExample.Api
 
             return response;
         }
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// All subsequent request to any protected resource needs the AccessToken and should be 
+        /// signed using ConsumerKey and the access token's secret code.
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public async Task<GetPhotosResponse> Popular(OauthToken token)
+        {
+            AuthorizationParameters = new Dictionary<string, string>()
+            {
+                {OauthParameter.OauthConsumerKey, Constants.ConsumerKey},
+                {OauthParameter.OauthNonce, GetNonce()},
+                {OauthParameter.OauthSignatureMethod, OAuthSignatureMethod},
+                {OauthParameter.OauthTimestamp, GetTimeStamp()},
+                {OauthParameter.OauthToken, token.Token},
+                {OauthParameter.OauthVersion, OAuthVersion}
+            };
+
+            var url2 = "https://api.500px.com/v1/photos?feature=popular&image_size=4";
+            var url = "https://api.500px.com/v1/photos";
+            var response = await Sign(url, Constants.ConsumerSecret, token.Secret, "GET", "feature=popular&image_size=4").GetRequest(url2);
+            return await DeserializeResponse<GetPhotosResponse>(response);
+        }
+
+        public async Task<OauthToken> GetRequestToken()
+        {
+            AuthorizationParameters = new Dictionary<string, string>()
+            {
+                {OauthParameter.OauthCallback, Constants.CallbackUrl},
+                {OauthParameter.OauthConsumerKey, Constants.ConsumerKey},
+                {OauthParameter.OauthNonce, GetNonce()},
+                {OauthParameter.OauthSignatureMethod, OAuthSignatureMethod},
+                {OauthParameter.OauthTimestamp, GetTimeStamp()},
+                {OauthParameter.OauthVersion, OAuthVersion}
+            };
+
+            var response = await Sign(RequestTokenUrl, Constants.ConsumerSecret, string.Empty, "POST", "").PostRequest(RequestTokenUrl);
+            return ParseReponse(response);
+        }
+
+        /// <summary>
+        /// A callback is needed to get back oauth_token and oauth_verifier
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public string GetAuthorizationUrl(OauthToken token)
+        {
+            return AuthorizeUrl + "?oauth_token=" + token.Token;
+        }
+
+        public async Task<OauthToken> GetAccessToken(OauthToken token)
+        {
+            AuthorizationParameters = new Dictionary<string, string>()
+            {
+                {OauthParameter.OauthConsumerKey, Constants.ConsumerKey},
+                {OauthParameter.OauthNonce, GetNonce()},
+                {OauthParameter.OauthSignatureMethod, OAuthSignatureMethod},
+                {OauthParameter.OauthTimestamp, GetTimeStamp()},
+                {OauthParameter.OauthToken, token.Token},
+                {OauthParameter.OauthVerifier, token.Verifier},
+                {OauthParameter.OauthVersion, OAuthVersion}
+             };
+
+            var response = await Sign(AccessUrl, Constants.ConsumerSecret, token.Secret, "POST", "").PostRequest(AccessUrl);
+            return ParseReponse(response);
+        }
+        #endregion  
     }
 }

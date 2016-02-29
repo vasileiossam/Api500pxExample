@@ -1,12 +1,13 @@
-﻿@model List<Api500pxExample.Api.Models.Photo>
+﻿@model Api500pxExample.Api.Contracts.GetPhotosResponse
 <h3>@ViewData["Message"]</h3>
 
 <table>
-    @foreach (var photo in Model)
+    @foreach (var photo in Model.Photos)
     {
         <tr>
             <td>
                 @photo.Name
+                <img src="@photo.Images[0].Url" />
             </td>
         </tr>
     }

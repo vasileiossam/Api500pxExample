@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using Api500pxExample.Api.Interfaces;
 
-namespace Api500pxExample.Api
+namespace Api500pxExample.Api.Contracts
 {
 	[DataContract]
 	public abstract class PagedResponse: Response, IPagedResponse

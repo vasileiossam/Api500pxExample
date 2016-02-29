@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Runtime.Serialization;
 
-namespace Api500pxExample.Api
+namespace Api500pxExample.Api.Contracts
 {
     [DataContract]
     public class Response

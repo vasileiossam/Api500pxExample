@@ -14,20 +14,20 @@ namespace Api500pxExample.Controllers
             return View();
         }
 
-        private void SaveToken(OauthToken token)
+        private void SaveToken(string key, OauthToken token)
         {
-            HttpContext.Session.SetString("Token", token.Token ?? string.Empty);
-            HttpContext.Session.SetString("Secret", token.Secret ?? string.Empty);
-            HttpContext.Session.SetString("Verifier", token.Verifier ?? string.Empty);
+            HttpContext.Session.SetString(key + ".Token", token.Token ?? string.Empty);
+            HttpContext.Session.SetString(key + ".Secret", token.Secret ?? string.Empty);
+            HttpContext.Session.SetString(key + ".Verifier", token.Verifier ?? string.Empty);
         }
 
-        private OauthToken LoadToken()
+        private OauthToken LoadToken(string key)
         {
             return new OauthToken()
             {
-                Token = HttpContext.Session.GetString("Token"),
-                Secret = HttpContext.Session.GetString("Secret"),
-                Verifier = HttpContext.Session.GetString("Verifier")
+                Token = HttpContext.Session.GetString(key + ".Token"),
+                Secret = HttpContext.Session.GetString(key + ".Secret"),
+                Verifier = HttpContext.Session.GetString(key + ".Verifier")
             };
         }
 
@@ -35,7 +35,7 @@ namespace Api500pxExample.Controllers
         {
             var service = new Api500px();
             var token = await service.GetRequestToken();
-            SaveToken(token);
+            SaveToken("RequestToken", token);
 
             var uri = service.GetAuthorizationUrl(token);
             
@@ -45,25 +45,29 @@ namespace Api500pxExample.Controllers
         public async Task<ActionResult> Callback(string oauth_token, string oauth_verifier)
         {
             var service = new Api500px();
-
-            var requestToken = LoadToken();
+            var requestToken = LoadToken("RequestToken");
             var accessToken = await service.GetAccessToken(new OauthToken() {Token = oauth_token, Secret = requestToken.Secret, Verifier = oauth_verifier});
 
-            await service.Popular(accessToken);
-            return View();
+            if ((accessToken != null) && (!string.IsNullOrEmpty(accessToken.Token)))
+            {
+                SaveToken("AccessToken", accessToken);
+                ViewBag.IsAuthenticated = 1;
+            }
+            else
+            {
+                ViewBag.IsAuthenticated = 0;
+            }
+
+            return View("Index");
         }
 
 
-        public async Task<RedirectResult> Popular()
+        public async Task<ActionResult> Popular()
         {
             var service = new Api500px();
-
-            //ViewData["Message"] = "Popular Photos";
-            //ViewData.Model = await service.Popular();
-            //return Redirect("https://api.500px.com/v1/oauth/authorize");
-
-            return null;
-            //return View();
+            var accessToken = LoadToken("AccessToken");
+            ViewData.Model = await service.Popular(accessToken);
+            return View();
         }
 
         public IActionResult Error()
