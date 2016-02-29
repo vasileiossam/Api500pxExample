@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Api500pxExample.Api.Models;
+using Newtonsoft.Json;
 
 // ReSharper disable InconsistentNaming
 
@@ -22,13 +23,16 @@ namespace Api500pxExample.Api
     /// </summary>
     public class Api500px //: IApi500px
     {
+        #region Private Constants
         private const string AccessUrl = "https://api.500px.com/v1/oauth/access_token";
         private const string AuthorizeUrl = "https://api.500px.com/v1/oauth/authorize";
         private const string RequestTokenUrl = "https://api.500px.com/v1/oauth/request_token";
-
         private const string OAuthSignatureMethod = "HMAC-SHA1";
         private const string OAuthVersion = "1.0";
+
         private const string CallbackUrl = "http://localhost:4840/Home/Callback";
+        #endregion
+
         private Dictionary<string, string> AuthorizationParameters;
 
         /// <summary>
@@ -51,7 +55,7 @@ namespace Api500pxExample.Api
 
             var url2 = "https://api.500px.com/v1/photos?feature=popular";
             var url = "https://api.500px.com/v1/photos";
-            var response = await Sign1(url, Constants.ConsumerSecret, token.Secret, "GET", "feature=popular").GetRequest(url2);
+            var response = await Sign(url, Constants.ConsumerSecret, token.Secret, "GET", "feature=popular").GetRequest(url2);
             return null;
         }
 
@@ -133,29 +137,6 @@ namespace Api500pxExample.Api
             return this;
         }
 
-        private Api500px Sign1(string uri, string tokenSecret1, string tokenSecret2, string requestType, string parameters)
-        {
-            var signatureParams = string.Join("&", AuthorizationParameters.Select(key => key.Key + "=" + Uri.EscapeDataString(key.Value)));
-            var signatureBase = requestType + "&";
-
-            if (string.IsNullOrEmpty(parameters))
-            {
-                signatureBase += Uri.EscapeDataString(uri) + "&" + Uri.EscapeDataString(signatureParams);
-            }
-            else
-            {
-                signatureBase += Uri.EscapeDataString(uri) + "&" + Uri.EscapeDataString(parameters + "&" + signatureParams);
-            }
-            //signatureBase = "GET&https%3A%2F%2Fapi.500px.com%2Fv1%2Fphotos&feature%3Dpopular%26oauth_consumer_key%3D3Pyv3z7C11R0HGVDv4xdkql76Z0MpLGITwY8n5pK%26oauth_nonce%3D529087203%26oauth_signature_method%3DHMAC-SHA1%26oauth_timestamp%3D1456651045%26oauth_token%3Da22F8u9gEIBfRy4Qr5jgz7dDqcu8YDj47dFbK0AO%26oauth_version%3D1.0";
-
-            var hash = GetHash(tokenSecret1, tokenSecret2);
-            var dataBuffer = Encoding.ASCII.GetBytes(signatureBase);
-            var hashBytes = hash.ComputeHash(dataBuffer);
-
-            AuthorizationParameters.Add(OauthParameter.OauthSignature, Convert.ToBase64String(hashBytes));
-            return this;
-        }
-
         private HashAlgorithm GetHash(string tokenSecret1, string tokenSecret2)
         {
             if (OAuthSignatureMethod != "HMAC-SHA1") throw new NotImplementedException();
@@ -168,7 +149,6 @@ namespace Api500pxExample.Api
             };
             return hmacsha1;
         }
-
 
         private async Task<string> PostRequest(string url)
         {
@@ -251,6 +231,23 @@ namespace Api500pxExample.Api
             }
 
             return token;
+        }
+
+        private static async Task<T> DeserializeResponse<T>(HttpResponseMessage httpResponse) where T : Response, new()
+        {
+            var content = await httpResponse.Content.ReadAsStringAsync();
+            var response = JsonConvert.DeserializeObject<T>(content) ?? new T();
+
+            response.Content = content;
+            response.IsSuccessStatusCode = httpResponse.IsSuccessStatusCode;
+            response.StatusCode = httpResponse.StatusCode;
+
+            if (!httpResponse.IsSuccessStatusCode)
+            {
+             //   Debug.WriteLine("HttpResponseMessage failed: " + httpResponse + "\r\n -- Content: " + content + ((!string.IsNullOrWhiteSpace(response.Error)) ? "\r\n -- Error: " + response.Error : string.Empty));
+            }
+
+            return response;
         }
     }
 }
