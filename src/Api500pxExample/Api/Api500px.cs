@@ -29,8 +29,6 @@ namespace Api500pxExample.Api
         private const string RequestTokenUrl = "https://api.500px.com/v1/oauth/request_token";
         private const string OAuthSignatureMethod = "HMAC-SHA1";
         private const string OAuthVersion = "1.0";
-
-        private const string CallbackUrl = "http://localhost:4840/Home/Callback";
         #endregion
 
         private Dictionary<string, string> AuthorizationParameters;
@@ -63,7 +61,7 @@ namespace Api500pxExample.Api
         {
             AuthorizationParameters = new Dictionary<string, string>()
             {
-                {OauthParameter.OauthCallback, CallbackUrl},
+                {OauthParameter.OauthCallback, Constants.CallbackUrl},
                 {OauthParameter.OauthConsumerKey, Constants.ConsumerKey},
                 {OauthParameter.OauthNonce, GetNonce()},
                 {OauthParameter.OauthSignatureMethod, OAuthSignatureMethod},
