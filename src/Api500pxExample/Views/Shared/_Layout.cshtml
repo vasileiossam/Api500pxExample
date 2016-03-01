@@ -30,7 +30,7 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    @if (ViewBag.IsAuthenticated == null)
+                    @if (!ViewBag.IsAuthenticated)
                     {
                         <li><a asp-controller="Home" asp-action="Authenticate">Authenticate</a></li>
                     }

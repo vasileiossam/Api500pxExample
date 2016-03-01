@@ -4,6 +4,7 @@ using Api500pxExample.Api;
 using Api500pxExample.Api.Models;
 using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
+using Microsoft.AspNet.Mvc.Filters;
 
 namespace Api500pxExample.Controllers
 {
@@ -14,8 +15,16 @@ namespace Api500pxExample.Controllers
             return View();
         }
 
+        public override void OnActionExecuted(ActionExecutedContext context)
+        {
+            base.OnActionExecuted(context);
+            var accessToken = LoadToken("AccessToken");
+            ViewBag.IsAuthenticated = !string.IsNullOrEmpty(accessToken.Token);
+        }
+
         private void SaveToken(string key, OauthToken token)
         {
+            
             HttpContext.Session.SetString(key + ".Token", token.Token ?? string.Empty);
             HttpContext.Session.SetString(key + ".Secret", token.Secret ?? string.Empty);
             HttpContext.Session.SetString(key + ".Verifier", token.Verifier ?? string.Empty);
