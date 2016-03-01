@@ -50,18 +50,18 @@ namespace Api500pxExample.Api
             return Math.Round(sinceEpoch.TotalSeconds).ToString(CultureInfo.InvariantCulture);
         }
 
-        private Api500px Sign(string uri, string tokenSecret1, string tokenSecret2, string requestType, string parameters)
+        private Api500px Sign(string url, string tokenSecret1, string tokenSecret2, string requestType, string parameters)
         {
             var signatureParams = string.Join("&", AuthorizationParameters.Select(key => key.Key + "=" + Uri.EscapeDataString(key.Value)));
             var signatureBase = requestType + "&";
 
             if (string.IsNullOrEmpty(parameters))
             {
-                signatureBase += Uri.EscapeDataString(uri) + "&" + Uri.EscapeDataString(signatureParams);
+                signatureBase += Uri.EscapeDataString(url) + "&" + Uri.EscapeDataString(signatureParams);
             }
             else
             {
-                signatureBase += Uri.EscapeDataString(uri) + "&" + Uri.EscapeDataString(parameters + "&" + signatureParams); 
+                signatureBase += Uri.EscapeDataString(url) + "&" + Uri.EscapeDataString(parameters + "&" + signatureParams); 
             }
         
             var hash = GetHash(tokenSecret1, tokenSecret2);
@@ -115,7 +115,7 @@ namespace Api500pxExample.Api
             return string.Empty;
         }
 
-        private async Task<HttpResponseMessage> GetRequest(string url)
+        private async Task<HttpResponseMessage> GetRequest(string url, string parameters)
         {
             var oauthString = string.Empty;
             if (AuthorizationParameters != null)
@@ -133,7 +133,7 @@ namespace Api500pxExample.Api
             using (var client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("OAuth", oauthString);
-                return await client.GetAsync(new Uri(url, UriKind.Absolute));
+                return await client.GetAsync(new Uri(url + "?" + parameters, UriKind.Absolute));
             }
         }
 
@@ -197,9 +197,9 @@ namespace Api500pxExample.Api
                 {OauthParameter.OauthVersion, OAuthVersion}
             };
 
-            var url2 = "https://api.500px.com/v1/photos?feature=popular&image_size=4";
             var url = "https://api.500px.com/v1/photos";
-            var response = await Sign(url, Constants.ConsumerSecret, token.Secret, "GET", "feature=popular&image_size=4").GetRequest(url2);
+            var parameters = "feature=popular&image_size=4";
+            var response = await Sign(url, Constants.ConsumerSecret, token.Secret, "GET", parameters).GetRequest(url, parameters);
             return await DeserializeResponse<GetPhotosResponse>(response);
         }
 
