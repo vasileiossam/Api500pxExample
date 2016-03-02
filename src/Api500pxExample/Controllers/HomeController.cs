@@ -10,19 +10,7 @@ namespace Api500pxExample.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
-
-        public override void OnActionExecuted(ActionExecutedContext context)
-        {
-            base.OnActionExecuted(context);
-            var koko = HttpContext.Request.Cookies["koko1"];
-            var accessToken = LoadToken("AccessToken");
-            ViewBag.IsAuthenticated = !string.IsNullOrEmpty(accessToken.Token);
-        }
-
+        #region private methods
         private void SaveToken(string key, OauthToken token)
         {
             HttpContext.Response.Cookies.Append(key + ".Token", token.Token ?? string.Empty);
@@ -38,6 +26,19 @@ namespace Api500pxExample.Controllers
                 Secret = HttpContext.Request.Cookies[key + ".Secret"],
                 Verifier = HttpContext.Request.Cookies[key + ".Verifier"]
             };
+        }
+        #endregion
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public override void OnActionExecuted(ActionExecutedContext context)
+        {
+            base.OnActionExecuted(context);
+            var accessToken = LoadToken("AccessToken");
+            ViewBag.IsAuthenticated = !string.IsNullOrEmpty(accessToken.Token);
         }
 
         public async Task<ActionResult> Authenticate()
@@ -69,8 +70,7 @@ namespace Api500pxExample.Controllers
 
             return View("Index");
         }
-
-
+        
         public async Task<ActionResult> Popular()
         {
             var service = new Api500px(LoadToken("AccessToken"));
