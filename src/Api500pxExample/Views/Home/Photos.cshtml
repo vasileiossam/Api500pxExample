@@ -1,0 +1,21 @@
+﻿@model Api500pxExample.Api.Contracts.GetPhotosResponse
+<h3>@ViewData["Message"]</h3>
+
+<div class="container">
+    <table class="table-bordered">
+        @foreach (var photo in Model.Photos)
+        {
+            <tr>
+                <td>
+                    <small>@photo.Category</small>
+                    <h2>@photo.Name</h2>
+                </td>
+            <tr>
+                <td>
+                    <img src="@photo.Images[0].Url" />
+                </td>
+            </tr>
+            </tr>
+        }
+    </table>
+</div>

@@ -18,25 +18,25 @@ namespace Api500pxExample.Controllers
         public override void OnActionExecuted(ActionExecutedContext context)
         {
             base.OnActionExecuted(context);
+            var koko = HttpContext.Request.Cookies["koko1"];
             var accessToken = LoadToken("AccessToken");
             ViewBag.IsAuthenticated = !string.IsNullOrEmpty(accessToken.Token);
         }
 
         private void SaveToken(string key, OauthToken token)
         {
-            
-            HttpContext.Session.SetString(key + ".Token", token.Token ?? string.Empty);
-            HttpContext.Session.SetString(key + ".Secret", token.Secret ?? string.Empty);
-            HttpContext.Session.SetString(key + ".Verifier", token.Verifier ?? string.Empty);
+            HttpContext.Response.Cookies.Append(key + ".Token", token.Token ?? string.Empty);
+            HttpContext.Response.Cookies.Append(key + ".Secret", token.Secret ?? string.Empty);
+            HttpContext.Response.Cookies.Append(key + ".Verifier", token.Verifier ?? string.Empty);
         }
 
         private OauthToken LoadToken(string key)
         {
             return new OauthToken()
             {
-                Token = HttpContext.Session.GetString(key + ".Token"),
-                Secret = HttpContext.Session.GetString(key + ".Secret"),
-                Verifier = HttpContext.Session.GetString(key + ".Verifier")
+                Token = HttpContext.Request.Cookies[key + ".Token"],
+                Secret = HttpContext.Request.Cookies[key + ".Secret"],
+                Verifier = HttpContext.Request.Cookies[key + ".Verifier"]
             };
         }
 
@@ -73,10 +73,16 @@ namespace Api500pxExample.Controllers
 
         public async Task<ActionResult> Popular()
         {
-            var service = new Api500px();
-            var accessToken = LoadToken("AccessToken");
-            ViewData.Model = await service.Popular(accessToken);
-            return View();
+            var service = new Api500px(LoadToken("AccessToken"));
+            ViewData.Model = await service.Photos("feature=popular&image_size=4&sort=rating");
+            return View("Photos");
+        }
+
+        public async Task<ActionResult> Search()
+        {
+            var service = new Api500px(LoadToken("AccessToken"));
+            ViewData.Model = await service.Search("term=inspire&rpp=30");
+            return View("Photos");
         }
 
         public IActionResult Error()
